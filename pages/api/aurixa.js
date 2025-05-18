@@ -52,3 +52,7 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "AURIXA backend error." });
   }
 }
+EOFgit add pages/api/aurixa.js
+git commit -m "Final fix: overwrite AURIXA backend completely"
+git push
+
