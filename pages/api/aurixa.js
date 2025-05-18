@@ -13,11 +13,18 @@ const tonePresets = {
 };
 
 export default async function handler(req, res) {
+  console.log("[AURIXA] Request received");
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST requests are allowed' });
   }
 
   const { message, tone = 'wisdom' } = req.body;
+
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'Invalid message input' });
+  }
+
   const systemPrompt = tonePresets[tone] || tonePresets['wisdom'];
 
   try {
@@ -31,10 +38,17 @@ export default async function handler(req, res) {
       max_tokens: 1000
     });
 
-    const reply = response.data.choices[0].message.content.trim();
+    const reply = response?.data?.choices?.[0]?.message?.content?.trim();
+
+    if (!reply) {
+      console.warn("[AURIXA] Empty reply from OpenAI:", JSON.stringify(response.data, null, 2));
+      return res.status(500).json({ error: "No response from AURIXA." });
+    }
+
+    console.log("[AURIXA] Success:", reply);
     res.status(200).json({ reply });
   } catch (error) {
-    console.error("AURIXA API ERROR:", error.message);
-    res.status(500).json({ error: "AURIXA failed to respond" });
+    console.error("[AURIXA ERROR]", error?.response?.data || error.message);
+    res.status(500).json({ error: "AURIXA backend error." });
   }
 }
