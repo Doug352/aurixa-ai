@@ -8,6 +8,8 @@ export default function Home() {
 
   const sendMessage = async () => {
     setLoading(true);
+    setResponse('');
+
     try {
       const res = await fetch('/api/aurixa', {
         method: 'POST',
@@ -15,10 +17,18 @@ export default function Home() {
         body: JSON.stringify({ message, tone })
       });
 
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('AURIXA API error:', errText);
+        setResponse('AURIXA failed to respond.');
+        return;
+      }
+
       const data = await res.json();
-      setResponse(data.reply || 'No response');
-    } catch (err) {
-      setResponse('Error: ' + err.message);
+      setResponse(data.reply || 'No reply received.');
+    } catch (error) {
+      console.error('Fetch error:', error);
+      setResponse('AURIXA encountered an unexpected error.');
     } finally {
       setLoading(false);
     }
@@ -27,9 +37,9 @@ export default function Home() {
   return (
     <main style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
       <h1>AURIXA</h1>
-      <p><i>Your advanced, emotionally intelligent assistant</i></p>
+      <p><i>Your emotionally intelligent AI assistant</i></p>
 
-      <label>Tone: </label>
+      <label><strong>Tone:</strong></label>{' '}
       <select value={tone} onChange={(e) => setTone(e.target.value)}>
         <option value="wisdom">Wisdom</option>
         <option value="direct">Direct</option>
@@ -44,12 +54,13 @@ export default function Home() {
         placeholder="Ask AURIXA anything..."
         style={{ marginTop: '1rem', width: '100%' }}
       />
+
       <br />
       <button onClick={sendMessage} disabled={loading || !message}>
         {loading ? 'Thinking...' : 'Send'}
       </button>
 
-      <div style={{ marginTop: '2rem', background: '#f9f9f9', padding: '1rem' }}>
+      <div style={{ marginTop: '2rem', background: '#f4f4f4', padding: '1rem' }}>
         <strong>AURIXA:</strong>
         <p>{response}</p>
       </div>
